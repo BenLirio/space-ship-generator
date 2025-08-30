@@ -37,19 +37,3 @@ package:
   patterns:
     # Include entire assets directory (example_1.png .. example_3.png and any future images)
     - assets/**
-
-resources:
-  Resources:
-    SpaceShipSpritesBucketPolicy:
-      Type: AWS::S3::BucketPolicy
-      Properties:
-        Bucket: space-ship-sprites
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Sid: AllowPublicReadForGetBucketObjects
-              Effect: Allow
-              Principal: "*"
-              Action:
-                - s3:GetObject
-              Resource: arn:aws:s3:::space-ship-sprites/*
