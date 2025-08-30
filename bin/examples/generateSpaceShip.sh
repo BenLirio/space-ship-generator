@@ -100,8 +100,8 @@ fi
 
 # Extract name if jq present
 if command -v jq >/dev/null 2>&1; then
-  NAME=$(printf '%s' "$BODY" | jq -r '.spaceship.name // empty')
-  if [[ -n "$NAME" ]]; then
-    echo "Generated spaceship name: $NAME" >&2
+  URL_VAL=$(printf '%s' "$BODY" | jq -r '.imageUrl // empty')
+  if [[ -n "$URL_VAL" ]]; then
+    echo "Image URL: $URL_VAL" >&2
   fi
 fi

@@ -1,5 +1,5 @@
-// Core spaceship generation logic, isolated from Lambda handler concerns.
-import { SpaceShip, stringHash, pickDeterministic } from "./utils";
+// Simplified image generation logic: given a prompt, return only an imageUrl.
+import { stringHash } from "./utils";
 import {
   S3Client,
   PutObjectCommand,
@@ -7,7 +7,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { readFileSync, existsSync } from "fs";
 import { GoogleGenAI } from "@google/genai";
-import { basename, join, resolve } from "path";
+import { basename, resolve } from "path";
 
 // Reference example images (added: example_1.png .. example_3.png)
 const EXAMPLE_IMAGES = [
@@ -15,77 +15,17 @@ const EXAMPLE_IMAGES = [
   "assets/example_2.png",
   "assets/example_3.png",
 ];
-const HULLS = [
-  "CarbonFiber",
-  "TitaniumAlloy",
-  "GrapheneComposite",
-  "NanoCeramic",
-  "BioHull",
-];
-
-const PROPULSION = [
-  "IonDrive",
-  "FusionPulse",
-  "Antimatter",
-  "SolarSail",
-  "QuantumSlipstream",
-];
-
-const NAV_SYSTEMS = [
-  "InertialNav",
-  "QuantumStarMap",
-  "GravimetricArray",
-  "AIHelm",
-  "ChronoNavigator",
-];
-
-const DEFENSE = [
-  "PlasmaShield",
-  "DeflectorArray",
-  "PhaseShiftField",
-  "ReactiveArmor",
-  "StealthWeave",
-];
-
-const MODULE_POOL = [
-  "MedBay",
-  "Hydroponics",
-  "CargoBay",
-  "ResearchLab",
-  "Hangar",
-  "DroneForge",
-  "ObservationDeck",
-  "AICore",
-  "CryoPods",
-  "WarpCapacitors",
-];
+// All metadata (hull, propulsion, etc.) was removed per simplification request.
 
 const s3 = new S3Client({});
 const BUCKET = process.env.SPACE_SHIP_BUCKET || "space-ship-sprites";
 
-export const buildSpaceShip = async (prompt: string): Promise<SpaceShip> => {
+export const buildSpaceShip = async (prompt: string): Promise<string> => {
   const seed = stringHash(prompt.trim().toLowerCase());
-  const hull = HULLS[seed % HULLS.length];
-  const propulsion = PROPULSION[(seed >> 3) % PROPULSION.length];
-  const navigation = NAV_SYSTEMS[(seed >> 7) % NAV_SYSTEMS.length];
-  const defense = DEFENSE[(seed >> 11) % DEFENSE.length];
-  const modules = pickDeterministic(MODULE_POOL, seed ^ 0x9e3779b9, 4).sort();
-
   const normalized = prompt.replace(/\s+/g, "-").replace(/[^A-Za-z0-9\-]/g, "");
   const nameBase = normalized.slice(0, 24) || "Vessel";
-  const name = `SS-${nameBase}`;
-
-  const base: SpaceShip = {
-    name,
-    promptUsed: prompt,
-    hull,
-    propulsion,
-    navigation,
-    defense,
-    modules,
-    seed,
-    notes: "Deterministic generation based on prompt hash (placeholder).",
-  };
+  const name = `SS-${nameBase}`; // Keep deterministic naming for S3 key stability
+  let imageUrl: string | undefined;
 
   // Helper to resolve the reference spaceship image reliably both in source (ts-node)
   // and in the bundled / transpiled Lambda environment.
@@ -180,7 +120,7 @@ export const buildSpaceShip = async (prompt: string): Promise<SpaceShip> => {
         })
       );
     }
-    base.imageUrl = `https://${BUCKET}.s3.amazonaws.com/${key}`;
+    imageUrl = `https://${BUCKET}.s3.amazonaws.com/${key}`;
   } catch (err) {
     // Fallback to placeholder if generation fails
     try {
@@ -203,10 +143,10 @@ export const buildSpaceShip = async (prompt: string): Promise<SpaceShip> => {
           })
         );
       }
-      base.imageUrl = `https://${BUCKET}.s3.amazonaws.com/${key}`;
+      imageUrl = `https://${BUCKET}.s3.amazonaws.com/${key}`;
     } catch {}
-    base.notes += ` | Image generation failed: ${(err as Error).message}`;
   }
-
-  return base;
+  if (!imageUrl)
+    throw new Error("Image generation failed with no fallback available");
+  return imageUrl;
 };

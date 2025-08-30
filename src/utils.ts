@@ -29,34 +29,4 @@ export const stringHash = (s: string): number => {
   return h;
 };
 
-export const pickDeterministic = <T>(
-  items: T[],
-  hashSeed: number,
-  count: number
-): T[] => {
-  const chosen: T[] = [];
-  const used = new Set<number>();
-  let seed = hashSeed;
-  for (let i = 0; i < items.length && chosen.length < count; i++) {
-    seed = (seed * 1664525 + 1013904223) >>> 0; // LCG
-    const idx = seed % items.length;
-    if (!used.has(idx)) {
-      used.add(idx);
-      chosen.push(items[idx]);
-    }
-  }
-  return chosen;
-};
-
-export interface SpaceShip {
-  name: string;
-  promptUsed: string;
-  hull: string;
-  propulsion: string;
-  navigation: string;
-  defense: string;
-  modules: string[];
-  notes?: string;
-  seed: number;
-  imageUrl?: string; // S3 URL of the generated (or placeholder) spaceship image
-}
+// Removed pickDeterministic + SpaceShip interface after simplification.

@@ -26,13 +26,13 @@ export const generateSpaceShip = async (
     };
   }
 
-  const ship = await buildSpaceShip(prompt);
+  const imageUrl = await buildSpaceShip(prompt);
 
   return {
     statusCode: 200,
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      spaceship: ship,
+      imageUrl,
       requestId: (event.requestContext as any)?.requestId,
     }),
   };
