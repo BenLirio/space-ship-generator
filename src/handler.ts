@@ -26,7 +26,7 @@ export const generateSpaceShip = async (
     };
   }
 
-  const ship = buildSpaceShip(prompt);
+  const ship = await buildSpaceShip(prompt);
 
   return {
     statusCode: 200,

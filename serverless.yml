@@ -7,6 +7,17 @@ provider:
   region: us-east-1
   environment:
     NODE_OPTIONS: --enable-source-maps
+  SPACE_SHIP_BUCKET: space-ship-sprites
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+            - s3:PutObjectAcl
+            - s3:GetObject
+            - s3:HeadObject
+          Resource: arn:aws:s3:::space-ship-sprites/*
 
 functions:
   generateSpaceShip:
@@ -18,3 +29,19 @@ functions:
 
 plugins:
   - serverless-offline
+
+resources:
+  Resources:
+    SpaceShipSpritesBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: space-ship-sprites
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: AllowPublicReadForGetBucketObjects
+              Effect: Allow
+              Principal: "*"
+              Action:
+                - s3:GetObject
+              Resource: arn:aws:s3:::space-ship-sprites/*

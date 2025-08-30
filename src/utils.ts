@@ -58,4 +58,5 @@ export interface SpaceShip {
   modules: string[];
   notes?: string;
   seed: number;
+  imageUrl?: string; // S3 URL of the generated (or placeholder) spaceship image
 }
