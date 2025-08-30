@@ -1,0 +1,27 @@
+{
+  "name": "space-ship-generator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "deploy": "serverless deploy",
+    "remove": "serverless remove",
+    "offline": "serverless offline",
+    "invoke:local": "serverless invoke local -f hello",
+    "lint:type": "tsc --noEmit",
+    "test": "echo \"No tests yet\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@serverless/typescript": "^4.18.0",
+    "@types/aws-lambda": "^8.10.152",
+    "@types/node": "^24.3.0",
+    "serverless": "^4.18.2",
+    "serverless-offline": "^14.4.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
