@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { parseJsonBody, GenerateRequestBody } from "./utils";
-import { buildSpaceShip } from "./generateSpaceShip";
+import { buildSpaceShip } from "./generateSpaceShip"; // still works via shim
 
 export const generateSpaceShip = async (
   event: APIGatewayProxyEvent
