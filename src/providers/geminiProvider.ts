@@ -12,7 +12,7 @@ export interface GeminiGenerationOptions {
 
 export const generateImageWithGemini = async ({
   prompt,
-}: GeminiGenerationOptions): Promise<{ base64: string; model: string }> => {
+}: GeminiGenerationOptions): Promise<string> => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("Missing GEMINI_API_KEY env var");
   const gemini = new GoogleGenAI({ apiKey });
@@ -49,5 +49,5 @@ export const generateImageWithGemini = async ({
     }
   }
   if (!base64) throw new Error("Gemini response lacked image data");
-  return { base64, model: GEMINI_MODEL };
+  return base64;
 };
