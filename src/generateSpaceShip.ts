@@ -120,9 +120,19 @@ export const buildSpaceShip = async (prompt: string): Promise<SpaceShip> => {
       } as any;
     });
     const gemini = new GoogleGenAI({ apiKey });
+    // Hard, consistent visual constraints independent of user prompt
+    const enforcedStyle = `RENDERING CONSTRAINTS (MANDATORY):
+1. Orientation: Strict top-down (orthographic) view. The spaceship nose/front must point UP toward the top edge of the canvas (0° rotation). No tilt, no isometric, no perspective, no side or angled views.
+2. Framing: The ship is centered vertically and horizontally, fully in frame, slight padding around extremities.
+3. Background: Solid, pure #000000 black. No stars, nebulae, gradients, textures, grids, UI, text, borders, vignettes, glows, or atmospheric haze. Only the ship on black.
+4. Lighting/Shadows: Consistent with a neutral, subtle overhead light; avoid dramatic rim lights that imply angled perspective.
+5. Style: Match line weight, shading approach, and palette treatment from the provided reference images.
+6. Negative constraints: Do NOT show horizon lines, cockpits from side, landing gear on ground, terrain, hangars, pilots, crew, or angled/3D perspective views. Do not crop the ship.
+7. Output: Single PNG style image (no collage, no multiple variants).`;
+
     const geminiPrompt = [
       {
-        text: `Generate a spaceship consistent with the visual style cues of ALL provided reference images (they are variations of the same art style). The new ship should be: ${prompt}. Maintain coherence with hull shading, color palette treatment, line weight, and perspective.`,
+        text: `Generate a spaceship consistent with the visual style cues of ALL provided reference images (they are variations of the same art style). User concept: ${prompt}. ${enforcedStyle}`,
       },
       ...referenceImageParts,
     ];
