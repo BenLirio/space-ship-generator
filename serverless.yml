@@ -8,14 +8,11 @@ provider:
   httpApi:
     cors:
       allowedOrigins:
-        - https://benlirio.com
+        - "*"
       allowedHeaders:
-        - Content-Type
-        - Authorization
+        - "*"
       allowedMethods:
-        - OPTIONS
-        - GET
-        - POST
+        - "*"
       maxAge: 86400
   environment:
     NODE_OPTIONS: --enable-source-maps

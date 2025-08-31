@@ -10,7 +10,10 @@ export const generateSpaceShip = async (
   if (!body || typeof body.prompt !== "string") {
     return {
       statusCode: 400,
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
       body: JSON.stringify({
         error: "Invalid body. Expected JSON { prompt: string }.",
       }),
@@ -21,7 +24,10 @@ export const generateSpaceShip = async (
   if (!prompt) {
     return {
       statusCode: 400,
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
       body: JSON.stringify({ error: "Prompt must be a non-empty string." }),
     };
   }
@@ -30,7 +36,10 @@ export const generateSpaceShip = async (
 
   return {
     statusCode: 200,
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+    },
     body: JSON.stringify({
       imageUrl,
       requestId: (event.requestContext as any)?.requestId,
