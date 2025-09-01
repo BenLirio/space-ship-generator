@@ -38,6 +38,13 @@ functions:
       - httpApi:
           path: /generate-space-ship
           method: post
+  generateSpriteSheet:
+    timeout: 29
+    handler: src/handler.generateSpriteSheetHandler
+    events:
+      - httpApi:
+          path: /generate-sprite-sheet
+          method: post
   diffBoundingBox:
     timeout: 29
     handler: src/handler.diffBoundingBoxHandler

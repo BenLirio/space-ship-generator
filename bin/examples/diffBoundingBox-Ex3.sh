@@ -1,0 +1,1 @@
+./bin/examples/diffBoundingBox.sh --image-a https://space-ship-sprites.s3.amazonaws.com/generated/0d8fcf35-07b0-4699-a5e9-4e28fbbd3f72.png --image-b https://space-ship-sprites.s3.amazonaws.com/generated/0d8fcf35-07b0-4699-a5e9-4e28fbbd3f72-thrustersOn-muzzleOff.png  --threshold 0.03 --min-box-area 5000 --min-cluster-pixels 5000
