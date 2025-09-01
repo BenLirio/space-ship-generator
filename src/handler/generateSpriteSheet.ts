@@ -80,10 +80,10 @@ export const generateSpriteSheetHandler = async (
 
     const spriteUrls: Record<string, { url?: string }> = {
       // Include the provided primary image URL per updated requirement
-      trustersOnMuzzleOn: { url: imageUrl },
-      trustersOfMuzzleOn: { url: undefined },
-      thrustersOnMuzzleOf: { url: undefined },
-      thrustersOfMuzzleOf: { url: undefined },
+      thrustersOnMuzzleOn: { url: imageUrl },
+      thrustersOffMuzzleOn: { url: undefined },
+      thrustersOnMuzzleOff: { url: undefined },
+      thrustersOffMuzzleOff: { url: undefined },
     };
 
     const persistVariant = async (
@@ -103,17 +103,17 @@ export const generateSpriteSheetHandler = async (
     await Promise.all([
       persistVariant(
         "thrustersOffMuzzleOn",
-        "trustersOfMuzzleOn",
+        "thrustersOffMuzzleOn",
         "-thrustersOff-muzzleOn"
       ),
       persistVariant(
         "thrustersOnMuzzleOff",
-        "thrustersOnMuzzleOf",
+        "thrustersOnMuzzleOff",
         "-thrustersOn-muzzleOff"
       ),
       persistVariant(
         "thrustersOffMuzzleOff",
-        "thrustersOfMuzzleOf",
+        "thrustersOffMuzzleOff",
         "-thrustersOff-muzzleOff"
       ),
     ]);

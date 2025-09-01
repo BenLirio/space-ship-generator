@@ -3,7 +3,7 @@ import { parseJsonBody, GenerateRequestBody } from "../utils";
 import { generateSpaceShipAsset } from "../buildSpaceShip";
 import { invalidBody, jsonResult, runSafely } from "./shared";
 
-// Keeps output shape exactly the same as previous implementation (including typoed keys) for compatibility.
+// NOTE: BREAKING CHANGE (v2): response sprite keys corrected (see MIGRATION.md)
 export const generateSpaceShipHandler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> =>
@@ -18,15 +18,12 @@ export const generateSpaceShipHandler = async (
 
     const primary = await generateSpaceShipAsset(prompt);
 
-    // Only generate the primary sprite now. Variants are produced by the new generateSpriteSheet endpoint.
+    // Only the primary image is produced here. Variants come from generateSpriteSheet endpoint.
     return jsonResult(200, {
       requestId: (event.requestContext as any)?.requestId,
       sprites: {
-        // Maintain legacy (typoed) keys & structure for backward compatibility
-        trustersOnMuzzleOn: { url: primary.imageUrl }, // primary image
-        trustersOfMuzzleOn: { url: undefined }, // variant placeholder (thrustersOff-muzzleOn)
-        thrustersOnMuzzleOf: { url: undefined }, // variant placeholder (thrustersOn-muzzleOff)
-        thrustersOfMuzzleOf: { url: undefined }, // variant placeholder (thrustersOff-muzzleOff)
+        // Correct key names (thrusters/muzzle) with placeholders for future variant filling
+        thrustersOnMuzzleOn: { url: primary.imageUrl },
       },
     });
   });

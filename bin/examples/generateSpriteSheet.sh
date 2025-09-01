@@ -13,7 +13,7 @@ Options:
   --host <host>    Host for local serverless offline (default: localhost)
   --port <port>    Port for local serverless offline (default: 3000)
   --url <url>      Full endpoint override (e.g. https://api-id.execute-api.us-east-1.amazonaws.com/generate-sprite-sheet)
-  --extract-from <jsonFile>  Read the primary URL from a JSON response file produced by generateSpaceShip (looks in .sprites.trustersOnMuzzleOn.url)
+  --extract-from <jsonFile>  Read the primary URL from a JSON response file produced by generateSpaceShip (looks in .sprites.thrustersOnMuzzleOn.url)
   -h, --help       Show this help and exit
 
 Environment overrides:
@@ -70,7 +70,7 @@ if [[ -n "$EXTRACT_FROM" ]]; then
     echo "File not found: $EXTRACT_FROM" >&2
     exit 1
   fi
-  IMAGE_URL=$(jq -r '.sprites.trustersOnMuzzleOn.url // empty' "$EXTRACT_FROM")
+  IMAGE_URL=$(jq -r '.sprites.thrustersOnMuzzleOn.url // empty' "$EXTRACT_FROM")
 fi
 
 [[ -z "$IMAGE_URL" ]] && { echo "Error: --image-url (or --extract-from) is required" >&2; usage >&2; exit 1; }
