@@ -18,12 +18,11 @@ export const generateSpaceShipHandler = async (
 
     const primary = await generateSpaceShipAsset(prompt);
 
-    // Only the primary image is produced here. Variants come from generateSpriteSheet endpoint.
+    // Only the primary image is produced here (now: thrustersOnMuzzleOff base). Variants come from generateSpriteSheet endpoint.
     return jsonResult(200, {
       requestId: (event.requestContext as any)?.requestId,
       sprites: {
-        // Correct key names (thrusters/muzzle) with placeholders for future variant filling
-        thrustersOnMuzzleOn: { url: primary.imageUrl },
+        thrustersOnMuzzleOff: { url: primary.imageUrl },
       },
     });
   });

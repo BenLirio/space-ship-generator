@@ -1,12 +1,12 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { parseJsonBody } from "../utils";
 import {
-  generateVariantThrustersOffMuzzleOn,
-  generateVariantThrustersOnMuzzleOff,
+  generateVariantThrustersOnMuzzleOn,
   generateVariantThrustersOffMuzzleOff,
 } from "../providers/geminiProvider";
 import { putObjectIfAbsent, publicUrlForKey } from "../storage/s3Storage";
 import { invalidBody, jsonResult, runSafely } from "./shared";
+import { mergeTopBottomHalves } from "../imageMerge";
 
 interface GenerateSpriteSheetBody {
   imageUrl: string; // primary image URL produced by generateSpaceShip endpoint
@@ -44,21 +44,20 @@ export const generateSpriteSheetHandler = async (
       );
     }
 
-    // Kick off variant generations concurrently
-    const [
-      thrustersOffMuzzleOnP,
-      thrustersOnMuzzleOffP,
-      thrustersOffMuzzleOffP,
-    ] = [
-      generateVariantThrustersOffMuzzleOn(imageUrl),
-      generateVariantThrustersOnMuzzleOff(imageUrl),
+    // The provided image is now considered the base: thrustersOnMuzzleOff.
+    // We derive the remaining three variants.
+    const [thrustersOnMuzzleOnP, thrustersOffMuzzleOffP] = [
+      generateVariantThrustersOnMuzzleOn(imageUrl),
       generateVariantThrustersOffMuzzleOff(imageUrl),
     ];
 
-    const variantBase64: Record<string, string | undefined> = {
-      thrustersOffMuzzleOn: undefined,
-      thrustersOnMuzzleOff: undefined,
+    const variantBase64: Record<
+      "thrustersOnMuzzleOn" | "thrustersOffMuzzleOff" | "thrustersOffMuzzleOn",
+      string | undefined
+    > = {
+      thrustersOnMuzzleOn: undefined,
       thrustersOffMuzzleOff: undefined,
+      thrustersOffMuzzleOn: undefined, // will be produced by merging
     };
 
     const settle = async (
@@ -73,16 +72,34 @@ export const generateSpriteSheetHandler = async (
     };
 
     await Promise.all([
-      settle("thrustersOffMuzzleOn", thrustersOffMuzzleOnP),
-      settle("thrustersOnMuzzleOff", thrustersOnMuzzleOffP),
+      settle("thrustersOnMuzzleOn", thrustersOnMuzzleOnP),
       settle("thrustersOffMuzzleOff", thrustersOffMuzzleOffP),
     ]);
 
+    // Compose thrustersOffMuzzleOn by merging top half (muzzle flashes) from
+    // thrustersOnMuzzleOn with bottom half (thrusters off) from thrustersOffMuzzleOff
+    if (
+      variantBase64.thrustersOnMuzzleOn &&
+      variantBase64.thrustersOffMuzzleOff
+    ) {
+      try {
+        variantBase64.thrustersOffMuzzleOn = await mergeTopBottomHalves(
+          variantBase64.thrustersOnMuzzleOn,
+          variantBase64.thrustersOffMuzzleOff
+        );
+      } catch (e) {
+        console.error(
+          "Failed to merge images for thrustersOffMuzzleOn variant",
+          e
+        );
+      }
+    }
+
     const spriteUrls: Record<string, { url?: string }> = {
-      // Include the provided primary image URL per updated requirement
-      thrustersOnMuzzleOn: { url: imageUrl },
+      // Provided base image
+      thrustersOnMuzzleOff: { url: imageUrl },
+      thrustersOnMuzzleOn: { url: undefined },
       thrustersOffMuzzleOn: { url: undefined },
-      thrustersOnMuzzleOff: { url: undefined },
       thrustersOffMuzzleOff: { url: undefined },
     };
 
@@ -102,14 +119,14 @@ export const generateSpriteSheetHandler = async (
 
     await Promise.all([
       persistVariant(
+        "thrustersOnMuzzleOn",
+        "thrustersOnMuzzleOn",
+        "-thrustersOn-muzzleOn"
+      ),
+      persistVariant(
         "thrustersOffMuzzleOn",
         "thrustersOffMuzzleOn",
         "-thrustersOff-muzzleOn"
-      ),
-      persistVariant(
-        "thrustersOnMuzzleOff",
-        "thrustersOnMuzzleOff",
-        "-thrustersOn-muzzleOff"
       ),
       persistVariant(
         "thrustersOffMuzzleOff",

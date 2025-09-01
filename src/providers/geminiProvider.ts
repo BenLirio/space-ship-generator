@@ -125,27 +125,28 @@ const generateVariantFromPrimary = async (
 ): Promise<string> =>
   generateGeminiImageFromPrompt({ fullPrompt, remoteImageUrls: [imageUrl] });
 
-// New explicit variant helpers
-export const generateVariantThrustersOffMuzzleOn = async (
-  imageUrl: string
-): Promise<string> =>
-  generateVariantFromPrimary(
-    imageUrl,
-    `Using the provided image, remove only the thruster flame. Keep the muzzle flash and everything else in the image exactly the same, preserving the original style, lighting, and composition.`
-  );
-
-export const generateVariantThrustersOnMuzzleOff = async (
-  imageUrl: string
-): Promise<string> =>
-  generateVariantFromPrimary(
-    imageUrl,
-    `Using the provided image, remove only the shooting effect. Keep everything else in the image exactly the same, preserving the original style, lighting, and composition.`
-  );
-
 export const generateVariantThrustersOffMuzzleOff = async (
   imageUrl: string
 ): Promise<string> =>
   generateVariantFromPrimary(
     imageUrl,
-    `Using the provided image, remove the thruster flame and the shooting effect. Keep everything else in the image exactly the same, preserving the original style, lighting, and composition.`
+    `Using the provided image of a spaceship, please remove the thruster flame from the scene. Ensure you fill in the area of the thrusters that we originally hidden from the thruster flame and keep the rest of the image the same.`
   );
+
+export const generateVariantThrustersOnMuzzleOn = async (
+  imageUrl: string
+): Promise<string> =>
+  generateVariantFromPrimary(
+    imageUrl,
+    `Using the provided image of a spaceship, please add small muzzle flashes to the two forward facing weapons. Ensure you do not modify any other part of the spaceship.`
+  );
+
+// The variant thrustersOffMuzzleOn is now produced via image merging logic (see imageMerge.ts)
+// and no longer generated directly by Gemini.
+
+export const generateVariantThrustersOffMuzzleOn =
+  async (): Promise<string> => {
+    throw new Error(
+      "generateVariantThrustersOffMuzzleOn is deprecated; use mergeTopBottomHalves util instead"
+    );
+  };
