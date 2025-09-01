@@ -116,17 +116,35 @@ export const generateImageWithGemini = async ({
 };
 
 /**
- * Generate an "idle" (thrusters off) variant using an already-generated image URL
- * as the sole reference image. This fetches the remote image (PNG assumed),
- * embeds it, and prompts Gemini to only disable thrusters while keeping
- * everything else identical (layout, palette, proportions, style, background, etc.).
+ * Internal helper to derive a variant from a previously generated primary image.
  */
-export const generateIdleThrustersOffVariant = async (
+const generateVariantFromPrimary = async (
+  imageUrl: string,
+  fullPrompt: string
+): Promise<string> =>
+  generateGeminiImageFromPrompt({ fullPrompt, remoteImageUrls: [imageUrl] });
+
+// New explicit variant helpers
+export const generateVariantThrustersOffMuzzleOn = async (
   imageUrl: string
-): Promise<string> => {
-  const fullPrompt = `Using the provided image, remove only the thruster flame. Keep everything else including the thruster on in the muzzle flash, preserving the original style, lighting, and composition.`;
-  return generateGeminiImageFromPrompt({
-    fullPrompt,
-    remoteImageUrls: [imageUrl],
-  });
-};
+): Promise<string> =>
+  generateVariantFromPrimary(
+    imageUrl,
+    `Using the provided image, remove only the thruster flame. Keep everything else the same including the muzzle flash, preserving the original style, lighting, and composition.`
+  );
+
+export const generateVariantThrustersOnMuzzleOff = async (
+  imageUrl: string
+): Promise<string> =>
+  generateVariantFromPrimary(
+    imageUrl,
+    `Using the provided image, remove only the muzzle flash. Keep everything else the same including the thruster still on, preserving the original style, lighting, and composition.`
+  );
+
+export const generateVariantThrustersOffMuzzleOff = async (
+  imageUrl: string
+): Promise<string> =>
+  generateVariantFromPrimary(
+    imageUrl,
+    `Using the provided image, remove the thruster flame and the muzzle flare. Keep everything else in the image exactly the same, preserving the original style, lighting, and composition.`
+  );

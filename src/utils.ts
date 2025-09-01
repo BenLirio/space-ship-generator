@@ -20,13 +20,4 @@ export const parseJsonBody = <T = unknown>(
   }
 };
 
-// Very small, deterministic string hash for component selection
-export const stringHash = (s: string): number => {
-  let h = 0;
-  for (let i = 0; i < s.length; i++) {
-    h = (h * 31 + s.charCodeAt(i)) >>> 0; // unsigned
-  }
-  return h;
-};
-
-// Removed pickDeterministic + SpaceShip interface after simplification.
+// Removed legacy helpers (stringHash, pickDeterministic, SpaceShip interface) after simplification.

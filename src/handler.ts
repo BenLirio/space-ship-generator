@@ -1,10 +1,15 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { parseJsonBody, GenerateRequestBody } from "./utils";
-import { generateSpaceShip as generateSpaceShipInternal } from "./buildSpaceShip"; // richer result
-import { generateIdleThrustersOffVariant } from "./providers/geminiProvider";
+import { generateSpaceShipAsset } from "./buildSpaceShip"; // core generation returning GenerationResult
+import {
+  generateVariantThrustersOffMuzzleOn,
+  generateVariantThrustersOnMuzzleOff,
+  generateVariantThrustersOffMuzzleOff,
+} from "./providers/geminiProvider";
 import { putObjectIfAbsent, publicUrlForKey } from "./storage/s3Storage";
 
-export const generateSpaceShip = async (
+// Renamed to avoid clashing with internal generation function name.
+export const generateSpaceShipHandler = async (
   event: APIGatewayProxyEvent
 ): Promise<APIGatewayProxyResult> => {
   const body = parseJsonBody<GenerateRequestBody>(event);
@@ -34,24 +39,80 @@ export const generateSpaceShip = async (
     };
   }
 
-  // Generate the primary (thrusters on) image first
-  const primary = await generateSpaceShipInternal(prompt);
+  // Generate the primary (thrustersOn + muzzleOn) image first (required reference)
+  const primary = await generateSpaceShipAsset(prompt);
 
-  let idleUrl: string | undefined;
-  try {
-    const idleBase64 = await generateIdleThrustersOffVariant(primary.imageUrl);
-    const idleKey = primary.objectKey.replace(/\.png$/, "-idle.png");
-    await putObjectIfAbsent(
-      idleKey,
-      Buffer.from(idleBase64, "base64"),
-      "image/png",
-      { variant: "idle" }
-    );
-    idleUrl = publicUrlForKey(idleKey);
-  } catch (err) {
-    // Non-fatal: still return primary image; include an error hint if desired later
-    console.error("Idle variant generation failed", err);
-  }
+  // Variant generation prompts (run in parallel)
+  const [thrustersOffMuzzleOnP, thrustersOnMuzzleOffP, thrustersOffMuzzleOffP] =
+    [
+      generateVariantThrustersOffMuzzleOn(primary.imageUrl),
+      generateVariantThrustersOnMuzzleOff(primary.imageUrl),
+      generateVariantThrustersOffMuzzleOff(primary.imageUrl),
+    ];
+
+  // Await all, capturing failures individually (continue best-effort)
+  const variantBase64: Record<string, string | undefined> = {
+    thrustersOffMuzzleOn: undefined,
+    thrustersOnMuzzleOff: undefined,
+    thrustersOffMuzzleOff: undefined,
+  };
+
+  const settle = async (
+    label: keyof typeof variantBase64,
+    p: Promise<string>
+  ) => {
+    try {
+      variantBase64[label] = await p;
+    } catch (e) {
+      console.error(`Variant generation failed for ${label}`, e);
+    }
+  };
+
+  await Promise.all([
+    settle("thrustersOffMuzzleOn", thrustersOffMuzzleOnP),
+    settle("thrustersOnMuzzleOff", thrustersOnMuzzleOffP),
+    settle("thrustersOffMuzzleOff", thrustersOffMuzzleOffP),
+  ]);
+
+  // Persist each successful variant
+  const spriteUrls: Record<string, { url?: string }> = {
+    trustersOnMuzzleOn: { url: primary.imageUrl },
+    trustersOfMuzzleOn: { url: undefined },
+    thrustersOnMuzzleOf: { url: undefined },
+    thrustersOfMuzzleOf: { url: undefined },
+  };
+
+  const persistVariant = async (
+    label: keyof typeof variantBase64,
+    responseKey: keyof typeof spriteUrls,
+    suffix: string
+  ) => {
+    const b64 = variantBase64[label];
+    if (!b64) return;
+    const key = primary.objectKey.replace(/\.png$/, `${suffix}.png`);
+    await putObjectIfAbsent(key, Buffer.from(b64, "base64"), "image/png", {
+      variant: responseKey as string,
+    });
+    spriteUrls[responseKey].url = publicUrlForKey(key);
+  };
+
+  await Promise.all([
+    persistVariant(
+      "thrustersOffMuzzleOn",
+      "trustersOfMuzzleOn",
+      "-thrustersOff-muzzleOn"
+    ),
+    persistVariant(
+      "thrustersOnMuzzleOff",
+      "thrustersOnMuzzleOf",
+      "-thrustersOn-muzzleOff"
+    ),
+    persistVariant(
+      "thrustersOffMuzzleOff",
+      "thrustersOfMuzzleOf",
+      "-thrustersOff-muzzleOff"
+    ),
+  ]);
 
   return {
     statusCode: 200,
@@ -61,10 +122,7 @@ export const generateSpaceShip = async (
     },
     body: JSON.stringify({
       requestId: (event.requestContext as any)?.requestId,
-      sprites: {
-        idle: { url: idleUrl },
-        thrusters: { url: primary.imageUrl },
-      },
+      sprites: spriteUrls,
     }),
   };
 };

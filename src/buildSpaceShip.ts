@@ -5,11 +5,12 @@ import { randomUUID } from "crypto";
 
 // Public high-level API replacing previous buildSpaceShip implementation.
 export const buildSpaceShip = async (prompt: string): Promise<string> => {
-  const result = await generateSpaceShip(prompt);
+  const result = await generateSpaceShipAsset(prompt);
   return result.imageUrl; // maintain old return shape for existing handler
 };
 
-export const generateSpaceShip = async (
+// Core image generation returning structured result.
+export const generateSpaceShipAsset = async (
   prompt: string
 ): Promise<GenerationResult> => {
   const id = randomUUID();

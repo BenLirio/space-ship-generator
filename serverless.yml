@@ -33,7 +33,7 @@ functions:
   generateSpaceShip:
     # Set function timeout to 29 seconds (max for API Gateway synchronous invocations)
     timeout: 29
-    handler: src/handler.generateSpaceShip
+    handler: src/handler.generateSpaceShipHandler
     events:
       - httpApi:
           path: /generate-space-ship
