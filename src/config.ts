@@ -1,9 +1,9 @@
 // Centralised configuration & constants
 
 export const EXAMPLE_IMAGE_PATHS = [
-  "assets/example_1.png",
-  "assets/example_2.png",
-  "assets/example_3.png",
+  "assets/example_4.png",
+  "assets/example_5.png",
+  "assets/example_6.png",
 ];
 
 export const GEMINI_MODEL =
