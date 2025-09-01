@@ -1,6 +1,8 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { parseJsonBody, GenerateRequestBody } from "./utils";
-import { buildSpaceShip } from "./generateSpaceShip"; // still works via shim
+import { generateSpaceShip as generateSpaceShipInternal } from "./buildSpaceShip"; // richer result
+import { generateIdleThrustersOffVariant } from "./providers/geminiProvider";
+import { putObjectIfAbsent, publicUrlForKey } from "./storage/s3Storage";
 
 export const generateSpaceShip = async (
   event: APIGatewayProxyEvent
@@ -32,7 +34,24 @@ export const generateSpaceShip = async (
     };
   }
 
-  const imageUrl = await buildSpaceShip(prompt);
+  // Generate the primary (thrusters on) image first
+  const primary = await generateSpaceShipInternal(prompt);
+
+  let idleUrl: string | undefined;
+  try {
+    const idleBase64 = await generateIdleThrustersOffVariant(primary.imageUrl);
+    const idleKey = primary.objectKey.replace(/\.png$/, "-idle.png");
+    await putObjectIfAbsent(
+      idleKey,
+      Buffer.from(idleBase64, "base64"),
+      "image/png",
+      { variant: "idle" }
+    );
+    idleUrl = publicUrlForKey(idleKey);
+  } catch (err) {
+    // Non-fatal: still return primary image; include an error hint if desired later
+    console.error("Idle variant generation failed", err);
+  }
 
   return {
     statusCode: 200,
@@ -41,8 +60,11 @@ export const generateSpaceShip = async (
       "Access-Control-Allow-Origin": "*",
     },
     body: JSON.stringify({
-      imageUrl,
       requestId: (event.requestContext as any)?.requestId,
+      sprites: {
+        idle: { url: idleUrl },
+        thrusters: { url: primary.imageUrl },
+      },
     }),
   };
 };

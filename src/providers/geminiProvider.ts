@@ -64,3 +64,57 @@ export const generateImageWithGemini = async ({
   const fullPrompt = `Generate a spaceship consistent with the visual style cues of ALL provided reference images (they are variations of the same art style). User concept: ${prompt}. ${ENFORCED_STYLE_CONSTRAINTS}`;
   return generateGeminiImageFromPrompt(fullPrompt, EXAMPLE_IMAGE_PATHS);
 };
+
+/**
+ * Generate an "idle" (thrusters off) variant using an already-generated image URL
+ * as the sole reference image. This fetches the remote image (PNG assumed),
+ * embeds it, and prompts Gemini to only disable thrusters while keeping
+ * everything else identical (layout, palette, proportions, style, background, etc.).
+ */
+export const generateIdleThrustersOffVariant = async (
+  imageUrl: string
+): Promise<string> => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("Missing GEMINI_API_KEY env var");
+  const gemini = new GoogleGenAI({ apiKey });
+
+  // Fetch existing generated image
+  const resp = await fetch(imageUrl);
+  if (!resp.ok) {
+    throw new Error(
+      `Failed to fetch base image for idle variant: ${resp.status}`
+    );
+  }
+  const arrayBuffer = await resp.arrayBuffer();
+  const base64 = Buffer.from(arrayBuffer).toString("base64");
+
+  const fullPrompt = `Make this exact image, but the only change is that the thrusters are turned off. Preserve: orientation (strict top-down), framing, proportions, colors (except remove/adjust any active thruster glow), line style, shading approach, background (#000000 pure). ${ENFORCED_STYLE_CONSTRAINTS}`;
+
+  const content: any[] = [
+    { text: fullPrompt },
+    {
+      inlineData: { mimeType: "image/png", data: base64 },
+    },
+  ];
+
+  const response = await gemini.models.generateContent({
+    model: GEMINI_MODEL,
+    contents: content as any,
+  });
+
+  let out: string | undefined;
+  if (response?.candidates) {
+    for (const c of response.candidates) {
+      const parts: any[] = (c as any).content?.parts || [];
+      for (const p of parts) {
+        if (p.inlineData?.data) {
+          out = p.inlineData.data;
+          break;
+        }
+      }
+      if (out) break;
+    }
+  }
+  if (!out) throw new Error("Gemini idle variant response lacked image data");
+  return out;
+};
