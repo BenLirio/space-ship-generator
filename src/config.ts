@@ -3,7 +3,7 @@
 export const EXAMPLE_IMAGE_PATHS = [
   "assets/shooting/example_1.png",
   "assets/shooting/example_2.png",
-  "assets/shooting/example_3.png",
+  "assets/shooting/example_4.png",
 ];
 
 export const GEMINI_MODEL =
@@ -15,11 +15,17 @@ export const ENFORCED_STYLE_CONSTRAINTS = `
 RENDERING CONSTRAINTS (MANDATORY):
 1. Orientation: Strict top-down (orthographic) view. The spaceship nose/front must point UP toward the top edge of the canvas (0° rotation). No tilt, no isometric, no perspective, no side or angled views.
 2. Thrusters should be ignited and in the back/bottom of the ship, 180° facing down.
-3. The spaceship should contains weaponry facing forward (0° rotation) and weaponry should have a muzzle flash.
+3. The spaceship should exactly two guns facing UP (0° rotation) mounted symmetrically on either side of the ship's nose/front or wings. These weapons should have a muzzle flash and no other weapons should be visible.
+`;
+
+export const ENFORCED_STYLE_CONSTRAINTS_V2 = `
+1. Do not modify the thruster of the ship. Any thruster existing on the provided image should remain in you generated image.
+2. Do not modify the weaponry on the ship. Any weaponry in the provided image should remain in your generated image.
 `;
 
 export const ENFORCED_STYLE_CONSTRAINTS_LEGACY = `
 RENDERING CONSTRAINTS (MANDATORY):
+// 2. The spaceship should exactly two weapons facing UP (0° rotation) mounted symmetrically on either side of the ship's nose/front or wings. No other weapons should be visible.
 1. Orientation: Strict top-down (orthographic) view. The spaceship nose/front must point UP toward the top edge of the canvas (0° rotation). No tilt, no isometric, no perspective, no side or angled views.
 2. Framing: The ship is centered vertically and horizontally, fully in frame, slight padding around extremities.
 3. Background: Solid, pure #000000 black. No stars, nebulae, gradients, textures, grids, UI, text, borders, vignettes, glows, or atmospheric haze. Only the ship on black.

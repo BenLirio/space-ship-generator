@@ -3,6 +3,7 @@ import {
   ENFORCED_STYLE_CONSTRAINTS,
   GEMINI_MODEL,
   EXAMPLE_IMAGE_PATHS,
+  ENFORCED_STYLE_CONSTRAINTS_V2,
 } from "../config";
 import { loadImageAsBase64 } from "../assetResolver";
 
@@ -130,7 +131,7 @@ export const generateVariantThrustersOffMuzzleOn = async (
 ): Promise<string> =>
   generateVariantFromPrimary(
     imageUrl,
-    `Using the provided image, remove only the thruster flame. Keep everything else the same including the muzzle flash, preserving the original style, lighting, and composition.`
+    `Using the provided image, remove only the thruster flame. Keep the muzzle flash and everything else in the image exactly the same, preserving the original style, lighting, and composition.`
   );
 
 export const generateVariantThrustersOnMuzzleOff = async (
@@ -138,7 +139,7 @@ export const generateVariantThrustersOnMuzzleOff = async (
 ): Promise<string> =>
   generateVariantFromPrimary(
     imageUrl,
-    `Using the provided image, remove only the muzzle flash. Keep everything else the same including the thruster still on, preserving the original style, lighting, and composition.`
+    `Using the provided image, remove only the shooting effect. Keep everything else in the image exactly the same, preserving the original style, lighting, and composition.`
   );
 
 export const generateVariantThrustersOffMuzzleOff = async (
@@ -146,5 +147,5 @@ export const generateVariantThrustersOffMuzzleOff = async (
 ): Promise<string> =>
   generateVariantFromPrimary(
     imageUrl,
-    `Using the provided image, remove the thruster flame and the muzzle flare. Keep everything else in the image exactly the same, preserving the original style, lighting, and composition.`
+    `Using the provided image, remove the thruster flame and the shooting effect. Keep everything else in the image exactly the same, preserving the original style, lighting, and composition.`
   );
