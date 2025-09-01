@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.620.0",
-    "@google/genai": "^0.3.1"
+    "@google/genai": "^0.3.1",
+    "jimp": "^0.22.12"
   }
 }

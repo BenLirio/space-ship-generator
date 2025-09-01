@@ -1,5 +1,9 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { parseJsonBody, GenerateRequestBody } from "./utils";
+import {
+  computeDiffBoundingBoxes,
+  DiffBoundingBoxRequestBody,
+} from "./diffBoundingBox";
 import { generateSpaceShipAsset } from "./buildSpaceShip"; // core generation returning GenerationResult
 import {
   generateVariantThrustersOffMuzzleOn,
@@ -125,4 +129,48 @@ export const generateSpaceShipHandler = async (
       sprites: spriteUrls,
     }),
   };
+};
+
+export const diffBoundingBoxHandler = async (
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
+  const body = parseJsonBody<DiffBoundingBoxRequestBody>(event);
+  if (
+    !body ||
+    typeof body.imageUrlA !== "string" ||
+    typeof body.imageUrlB !== "string"
+  ) {
+    return {
+      statusCode: 400,
+      headers: {
+        "content-type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({
+        error:
+          "Invalid body. Expected JSON { imageUrlA: string, imageUrlB: string, threshold?, minBoxArea? }",
+      }),
+    };
+  }
+  try {
+    const result = await computeDiffBoundingBoxes(body);
+    return {
+      statusCode: 200,
+      headers: {
+        "content-type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify(result),
+    };
+  } catch (e: any) {
+    console.error("diffBoundingBox error", e);
+    return {
+      statusCode: 400,
+      headers: {
+        "content-type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+      body: JSON.stringify({ error: e?.message || "Failed to compute diff" }),
+    };
+  }
 };

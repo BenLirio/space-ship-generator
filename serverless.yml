@@ -38,6 +38,13 @@ functions:
       - httpApi:
           path: /generate-space-ship
           method: post
+  diffBoundingBox:
+    timeout: 29
+    handler: src/handler.diffBoundingBoxHandler
+    events:
+      - httpApi:
+          path: /diff-bounding-box
+          method: post
 
 plugins:
   - serverless-offline
