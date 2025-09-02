@@ -52,6 +52,13 @@ functions:
       - httpApi:
           path: /diff-bounding-box
           method: post
+  resize:
+    timeout: 29
+    handler: src/handler.resizeHandler
+    events:
+      - httpApi:
+          path: /resize
+          method: post
 
 plugins:
   - serverless-offline

@@ -14,7 +14,7 @@ Options:
   --url <url>            Override full endpoint URL (default: http://$HOST:$PORT/diff-bounding-box)
   --host <host>          Host for local serverless offline (default: localhost)
   --port <port>          Port for local serverless offline (default: 3000)
-  --out-dir <dir>        Output directory to store downloaded + annotated images (default: ./diff-output-YYYYmmdd-HHMMSS)
+  --out-dir <name>       Subfolder name inside ./diff-output/ to store downloaded + annotated images (default: timestamp)
   -h, --help             Show this help
 
 Env overrides:
@@ -35,6 +35,7 @@ HOST=${HOST:-localhost}
 PORT=${PORT:-3000}
 URL=${URL:-}
 OUT_DIR=""
+ROOT_OUT_DIR="diff-output"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -81,9 +82,14 @@ if [[ -z "$URL" ]]; then
 fi
 
 if [[ -z "$OUT_DIR" ]]; then
-  OUT_DIR="diff-output-$(date +%Y%m%d-%H%M%S)"
+  SUBFOLDER="$(date +%Y%m%d-%H%M%S)"
+else
+  # Sanitize: remove leading slashes to avoid escaping root dir
+  SUBFOLDER="${OUT_DIR##*/}"
 fi
+OUT_DIR="$ROOT_OUT_DIR/$SUBFOLDER"
 mkdir -p "$OUT_DIR"
+echo "Using output directory: $OUT_DIR" >&2
 
 json_escape() {
   local s="$1"
