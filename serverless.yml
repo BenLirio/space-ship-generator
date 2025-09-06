@@ -59,6 +59,13 @@ functions:
       - httpApi:
           path: /resize
           method: post
+  nameShip:
+    timeout: 15
+    handler: src/handler.nameShipHandler
+    events:
+      - httpApi:
+          path: /name-ship
+          method: post
 
 plugins:
   - serverless-offline

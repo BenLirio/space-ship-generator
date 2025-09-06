@@ -12,6 +12,68 @@ export interface GeminiGenerationOptions {
 }
 
 /**
+ * Generate a playful, light-hearted spaceship name from a short concept prompt.
+ * Returns a single line string with no quotes.
+ */
+export const generateShipName = async (prompt: string): Promise<string> => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("Missing GEMINI_API_KEY env var");
+  const gemini = new GoogleGenAI({ apiKey });
+
+  const instructions = [
+    "You are a whimsical spaceship namer.",
+    "Given a short concept for a ship, return exactly one playful, light-hearted.",
+    "Constraints:",
+    "- 2–5 words.",
+    "- No existing IP names or trademarked references.",
+    "- No profanity or offensive content.",
+    "- Avoid serial numbers unless part of a clear joke.",
+    "Output: Return only the name with no quotes or extra text.",
+  ].join("\n");
+
+  const contents: any = [
+    {
+      role: "user",
+      parts: [
+        {
+          text: `${instructions}\n\nConcept: ${prompt}\n\nName:`,
+        },
+      ],
+    },
+  ];
+
+  const response = await gemini.models.generateContent({
+    model: GEMINI_MODEL,
+    contents,
+  });
+
+  // Prefer concatenating any text parts in the first candidate
+  let text = "";
+  const candidates: any[] = (response as any)?.candidates || [];
+  for (const c of candidates) {
+    const parts: any[] = (c as any)?.content?.parts || [];
+    for (const p of parts) {
+      if (typeof p.text === "string") text += p.text;
+    }
+    if (text) break;
+  }
+
+  const name =
+    (text || "")
+      .split("\n")
+      .map((s) => s.trim())
+      .find((s) => s.length > 0) || "";
+
+  const cleaned = name
+    .replace(/^["'“”‘’\s]+|["'“”‘’\s]+$/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!cleaned) throw new Error("No name generated");
+  return cleaned;
+};
+
+/**
  * Low-level helper: given a fully composed prompt string and a list of reference
  * image paths on disk, call Gemini image model and return the first base64 PNG
  * payload found in the response.
