@@ -5,12 +5,3 @@ export interface GenerationResult {
   objectKey: string;
   imageUrl: string;
 }
-
-export interface ScoreRecord {
-  id: string;
-  name: string;
-  score: number;
-  shipImageUrl: string;
-  createdAt?: string;
-}
-
