@@ -18,8 +18,7 @@ provider:
     NODE_OPTIONS: --enable-source-maps
     GEMINI_API_KEY: ${env:GEMINI_API_KEY}
     SPACE_SHIP_BUCKET: space-ship-sprites
-    # Allow override via env var at deploy time; falls back to service-stage default
-    SCOREBOARD_TABLE: ${env:SCOREBOARD_TABLE, '${self:service}-scoreboard-${sls:stage}'}
+    SCOREBOARD_TABLE: ${self:service}-scoreboard-${sls:stage}
   iam:
     role:
       statements:
