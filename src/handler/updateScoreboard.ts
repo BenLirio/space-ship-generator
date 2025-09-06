@@ -23,7 +23,8 @@ export const updateScoreboardHandler = async (
       return invalidBody("Invalid JSON body.");
     }
 
-    if (!payload) return invalidBody("Missing body.");
+    if (!payload)
+      return invalidBody("Missing body.");
 
     const { id, name, score, shipImageUrl } = payload as any;
 
@@ -31,64 +32,29 @@ export const updateScoreboardHandler = async (
       return invalidBody("id must be a non-empty string");
     if (!name || typeof name !== "string")
       return invalidBody("name must be a non-empty string");
-    if (typeof score !== "number") return invalidBody("score must be a number");
+    if (typeof score !== "number")
+      return invalidBody("score must be a number");
     if (!shipImageUrl || typeof shipImageUrl !== "string")
       return invalidBody("shipImageUrl must be a non-empty string");
 
     const now = new Date().toISOString();
-    // Use partition key constant and numeric sort key for leaderboard by score
-    // Use integer sk = score*1000 + tieBreaker to avoid collisions on same score
-    // Attempt conditional put; if key exists, increment tieBreaker and retry
-    const base = Math.round(score * 1000);
-    let attempt = 0;
-    const maxAttempts = 20; // allow up to 20 collisions at the same score
-    let lastError: unknown = null;
-    while (attempt < maxAttempts) {
-      const sk = base + attempt; // stable, ordered primarily by score
-      const item: ScoreRecord & {
-        pk: string;
-        sk: number;
-        createdAt: string;
-      } = {
-        id,
-        name,
-        score,
-        shipImageUrl,
-        createdAt: now,
-        pk: "SCOREBOARD",
-        sk,
-      };
+    const item: ScoreRecord & { pk: string; sk: number; createdAt: string } = {
+      id,
+      name,
+      score,
+      shipImageUrl,
+      createdAt: now,
+      // PK for single-table design, SK as negative score to sort high->low with ascending queries if needed
+      pk: "SCOREBOARD",
+      sk: -score,
+    };
 
-      try {
-        await ddb.send(
-          new PutCommand({
-            TableName: SCOREBOARD_TABLE,
-            Item: item,
-            ConditionExpression:
-              "attribute_not_exists(pk) AND attribute_not_exists(sk)",
-          })
-        );
-        lastError = null;
-        break;
-      } catch (err: any) {
-        // If collision, try next tiebreaker; otherwise rethrow
-        const code = err?.name || err?.code || err?.__type;
-        if (
-          code === "ConditionalCheckFailedException" ||
-          code ===
-            "com.amazonaws.dynamodb.v20120810#ConditionalCheckFailedException"
-        ) {
-          attempt += 1;
-          lastError = err;
-          continue;
-        }
-        throw err;
-      }
-    }
-    if (lastError) {
-      // Exhausted retries
-      throw lastError;
-    }
+    await ddb.send(
+      new PutCommand({
+        TableName: SCOREBOARD_TABLE,
+        Item: item,
+      })
+    );
 
     return jsonResult(200, { ok: true });
   });

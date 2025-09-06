@@ -30,8 +30,8 @@ export const listScoreboardHandler = async (
 
     const limit = maxItems ?? 25;
 
-    // Query primary index by pk with sk sorted descending (highest score first)
-    const res = await ddb.send(
+    // Query primary partition with ascending SK (-score), which returns highest score first.
+  const res = await ddb.send(
       new QueryCommand({
         TableName: SCOREBOARD_TABLE,
         KeyConditionExpression: "pk = :pk",
@@ -39,11 +39,11 @@ export const listScoreboardHandler = async (
           ":pk": "SCOREBOARD",
         },
         Limit: limit,
-        ScanIndexForward: false,
+        ScanIndexForward: true,
       })
     );
 
-    const items = ((res.Items || []) as any[]).map((it) => ({
+  const items = ((res.Items || []) as any[]).map((it) => ({
       id: it.id,
       name: it.name,
       score: it.score,

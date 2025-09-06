@@ -13,3 +13,4 @@ export interface ScoreRecord {
   shipImageUrl: string;
   createdAt?: string;
 }
+
