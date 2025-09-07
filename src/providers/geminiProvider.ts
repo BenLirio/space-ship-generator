@@ -74,6 +74,55 @@ export const generateShipName = async (prompt: string): Promise<string> => {
 };
 
 /**
+ * Expand a short user prompt into a detailed, vivid spaceship description.
+ * This adds creative but consistent details to reduce vagueness, while
+ * explicitly avoiding disallowed content or copyright/trademark references.
+ */
+export const expandShipPrompt = async (prompt: string): Promise<string> => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error("Missing GEMINI_API_KEY env var");
+  const gemini = new GoogleGenAI({ apiKey });
+
+  const system = [
+    "You are a helpful prompt expander for a top-down 2D arcade spaceship generator.",
+    "Goal: Enrich a short user idea into a single concise paragraph (120-220 words) that is imaginative, concrete, and game-ready.",
+    "Keep it compatible with strict rendering rules that will be appended later (orientation, guns, thrusters).",
+    "Guidelines:",
+    "- Invent tasteful details: hull silhouette, materials, color accents, decals/symbols, faction vibe, wear/age, role/class (interceptor, hauler, medic, scavenger, etc.).",
+    "- Suggest functional features consistent with a top-down sprite (intakes, radiators, fins, plating seams).",
+    "- Avoid calling for perspective/angled views, pilots, cockpits from side, or environments.",
+    "- No real-world IP names, franchise terms, or logos. Use generic descriptors.",
+    "- Avoid profanity or sensitive content.",
+    "Output: Return only the expanded description paragraph with no headings or bullets.",
+  ].join("\n");
+
+  const contents: any = [
+    {
+      role: "user",
+      parts: [{ text: `${system}\n\nUser idea: ${prompt}\n\nExpanded:` }],
+    },
+  ];
+
+  const response = await gemini.models.generateContent({
+    model: GEMINI_MODEL,
+    contents,
+  });
+
+  let text = "";
+  const candidates: any[] = (response as any)?.candidates || [];
+  for (const c of candidates) {
+    const parts: any[] = (c as any)?.content?.parts || [];
+    for (const p of parts) if (typeof p.text === "string") text += p.text;
+    if (text) break;
+  }
+
+  const expanded = (text || "").replace(/\s+/g, " ").trim();
+  if (!expanded) throw new Error("No expanded prompt produced");
+  console.log("Expanded prompt:", expanded);
+  return expanded;
+};
+
+/**
  * Low-level helper: given a fully composed prompt string and a list of reference
  * image paths on disk, call Gemini image model and return the first base64 PNG
  * payload found in the response.
@@ -171,7 +220,7 @@ export const generateGeminiImageFromPrompt = async (
 export const generateImageWithGemini = async ({
   prompt,
 }: GeminiGenerationOptions): Promise<string> => {
-  const fullPrompt = `Generate a spaceship consistent with the visual style cues of ALL provided reference images (they are variations of the same art style). User concept: ${prompt}. ${ENFORCED_STYLE_CONSTRAINTS}`;
+  const fullPrompt = `Generate a spaceship based on the user prompt: "${prompt}". ${ENFORCED_STYLE_CONSTRAINTS}`;
   return generateGeminiImageFromPrompt({
     fullPrompt,
     localImagePaths: EXAMPLE_IMAGE_PATHS,
@@ -200,7 +249,7 @@ export const generateVariantThrustersOnMuzzleOn = async (
 ): Promise<string> =>
   generateVariantFromPrimary(
     imageUrl,
-    `Using the provided image of a spaceship, please add small muzzle flashes to the two forward facing weapons. Ensure you do not modify any other part of the spaceship.`
+    `Using the provided image of a spaceship, please add small muzzle flashes to ONLY the guns facing UP (0° rotation). Ensure you do not modify any other part of the spaceship.`
   );
 
 // The variant thrustersOffMuzzleOn is now produced via image merging logic (see imageMerge.ts)

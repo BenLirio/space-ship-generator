@@ -15,8 +15,8 @@ export const ENFORCED_STYLE_CONSTRAINTS = `
 RENDERING CONSTRAINTS (MANDATORY):
 1. Orientation: Strict top-down (orthographic) view. The spaceship nose/front must point UP toward the top edge of the canvas (0° rotation). No tilt, no isometric, no perspective, no side or angled views.
 2. Thrusters should be ignited and in the back/bottom of the ship, 180° facing down.
-3. The spaceship should exactly two guns facing UP (0° rotation) mounted symmetrically on either side of the ship's nose/front or wings. No other weapons should be visible.
-4. Try to avoid copying exact features from the example images, but rather use them as inspiration for style, line weight, shading, and color palette. Be creative and original and base your design on the user prompt.
+3. The spaceship should at least one weapon facing UP (0° rotation) mounted on the ship's nose/front or wings. No other weapons should be visible.
+4. Avoid directly copying the design of example ships; create a unique design that the user prompt.
 `;
 
 // export const ENFORCED_STYLE_CONSTRAINTS = `
