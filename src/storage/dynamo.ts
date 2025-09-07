@@ -15,3 +15,4 @@ export const getDynamoDocClient = () => {
 export const SCOREBOARD_TABLE =
   process.env.SCOREBOARD_TABLE || "scoreboard-dev";
 export const SCOREBOARD_GSI = "byScore";
+export const IP_USAGE_TABLE = process.env.IP_USAGE_TABLE || "ip-usage-dev";

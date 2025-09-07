@@ -19,6 +19,7 @@ provider:
     GEMINI_API_KEY: ${env:GEMINI_API_KEY}
     SPACE_SHIP_BUCKET: space-ship-sprites
     SCOREBOARD_TABLE: ${self:service}-scoreboard-${sls:stage}
+    IP_USAGE_TABLE: ${self:service}-ip-usage-${sls:stage}
   iam:
     role:
       statements:
@@ -33,6 +34,7 @@ provider:
           Action:
             - dynamodb:PutItem
             - dynamodb:GetItem
+            - dynamodb:UpdateItem
             - dynamodb:DeleteItem
             - dynamodb:Query
             - dynamodb:Scan
@@ -40,6 +42,7 @@ provider:
           Resource:
             - arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.SCOREBOARD_TABLE}
             - arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.SCOREBOARD_TABLE}/index/*
+            - arn:aws:dynamodb:${aws:region}:*:table/${self:provider.environment.IP_USAGE_TABLE}
 
 functions:
   generateSpaceShip:
@@ -92,6 +95,13 @@ functions:
       - httpApi:
           path: /scoreboard
           method: get
+  getNumRemainingShips:
+    timeout: 5
+    handler: src/handler.getNumRemainingShipsHandler
+    events:
+      - httpApi:
+          path: /get-num-remaining-ships
+          method: get
 
 plugins:
   - serverless-offline
@@ -129,3 +139,15 @@ resources:
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL
+
+    IpUsageTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.IP_USAGE_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: ip
+            AttributeType: S
+        KeySchema:
+          - AttributeName: ip
+            KeyType: HASH

@@ -6,3 +6,4 @@ export { resizeHandler } from "./handler/resize";
 export { nameShipHandler } from "./handler/nameShip";
 export { scoreboardSetHandler } from "./handler/scoreboardSet";
 export { scoreboardListHandler } from "./handler/scoreboardList";
+export { getNumRemainingShipsHandler } from "./handler/getNumRemainingShips";
