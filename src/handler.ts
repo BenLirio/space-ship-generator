@@ -4,3 +4,5 @@ export { generateSpriteSheetHandler } from "./handler/generateSpriteSheet";
 export { diffBoundingBoxHandler } from "./handler/diffBoundingBox";
 export { resizeHandler } from "./handler/resize";
 export { nameShipHandler } from "./handler/nameShip";
+export { scoreboardSetHandler } from "./handler/scoreboardSet";
+export { scoreboardListHandler } from "./handler/scoreboardList";
