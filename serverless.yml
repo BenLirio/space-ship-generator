@@ -53,6 +53,13 @@ functions:
       - httpApi:
           path: /generate-space-ship
           method: post
+  expandPrompt:
+    timeout: 15
+    handler: src/handler.expandPromptHandler
+    events:
+      - httpApi:
+          path: /expand-prompt
+          method: post
   generateSpriteSheet:
     timeout: 29
     handler: src/handler.generateSpriteSheetHandler
